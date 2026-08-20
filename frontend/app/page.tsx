@@ -1,69 +1,115 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  endpoints as seedEndpoints,
+  type Endpoint,
+} from "@/lib/mock-data";
+import { EndpointsSidebar } from "@/components/endpoints-sidebar";
+import { RequestList } from "@/components/request-list";
+import { RequestDetail } from "@/components/request-detail";
+import { CreateEndpointDialog } from "@/components/create-endpoint-dialog";
+
+function randomKey(len = 24) {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "";
+  for (let i = 0; i < len; i++) {
+    out += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return out;
+}
 
 export default function Home() {
+  const [endpoints, setEndpoints] = useState<Endpoint[]>(seedEndpoints);
+  const [selectedEndpointId, setSelectedEndpointId] = useState(
+    seedEndpoints[0].id,
+  );
+  const [selectedByEndpoint, setSelectedByEndpoint] = useState<
+    Record<string, string | null>
+  >({ [seedEndpoints[0].id]: seedEndpoints[0].requests[0]?.id ?? null });
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const selectedEndpoint = useMemo(
+    () => endpoints.find((e) => e.id === selectedEndpointId) ?? endpoints[0],
+    [endpoints, selectedEndpointId],
+  );
+
+  const selectedRequestId = selectedByEndpoint[selectedEndpoint.id] ?? null;
+  const selectedRequest =
+    selectedEndpoint.requests.find((r) => r.id === selectedRequestId) ?? null;
+
+  function handleSelectEndpoint(id: string) {
+    setSelectedEndpointId(id);
+    setSelectedByEndpoint((prev) => {
+      if (prev[id] !== undefined) return prev;
+      const ep = endpoints.find((e) => e.id === id);
+      return { ...prev, [id]: ep?.requests[0]?.id ?? null };
+    });
+  }
+
+  function handleSelectRequest(id: string) {
+    setSelectedByEndpoint((prev) => ({ ...prev, [selectedEndpoint.id]: id }));
+  }
+
+  function handleToggleEnabled() {
+    setEndpoints((prev) =>
+      prev.map((e) =>
+        e.id === selectedEndpoint.id ? { ...e, enabled: !e.enabled } : e,
+      ),
+    );
+  }
+
+  function handleDeleteRequest(id: string) {
+    setEndpoints((prev) =>
+      prev.map((e) =>
+        e.id === selectedEndpoint.id
+          ? { ...e, requests: e.requests.filter((r) => r.id !== id) }
+          : e,
+      ),
+    );
+    setSelectedByEndpoint((prev) => {
+      const remaining = selectedEndpoint.requests.filter((r) => r.id !== id);
+      return { ...prev, [selectedEndpoint.id]: remaining[0]?.id ?? null };
+    });
+  }
+
+  function handleCreateEndpoint(name: string) {
+    const newEndpoint: Endpoint = {
+      id: `ep_${randomKey(6)}`,
+      name,
+      publicKey: randomKey(24),
+      enabled: true,
+      createdAt: new Date().toISOString(),
+      requests: [],
+    };
+    setEndpoints((prev) => [...prev, newEndpoint]);
+    setSelectedEndpointId(newEndpoint.id);
+    setSelectedByEndpoint((prev) => ({ ...prev, [newEndpoint.id]: null }));
+    setDialogOpen(false);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="flex h-screen w-full overflow-hidden">
+      <EndpointsSidebar
+        endpoints={endpoints}
+        selectedId={selectedEndpoint.id}
+        onSelect={handleSelectEndpoint}
+        onCreate={() => setDialogOpen(true)}
+      />
+      <RequestList
+        endpoint={selectedEndpoint}
+        selectedRequestId={selectedRequestId}
+        onSelectRequest={handleSelectRequest}
+        onToggleEnabled={handleToggleEnabled}
+      />
+      <RequestDetail request={selectedRequest} onDelete={handleDeleteRequest} />
+
+      <CreateEndpointDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onCreate={handleCreateEndpoint}
+      />
     </div>
   );
 }
