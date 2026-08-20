@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, Radio, Webhook } from "lucide-react";
+import { Plus, Radio, Trash2, Webhook } from "lucide-react";
+import { UserButton, useUser } from "@clerk/nextjs";
 import type { Endpoint } from "@/lib/mock-data";
 import { MAX_ENDPOINTS } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -10,12 +11,15 @@ export function EndpointsSidebar({
   selectedId,
   onSelect,
   onCreate,
+  onDelete,
 }: {
   endpoints: Endpoint[];
   selectedId: string;
   onSelect: (id: string) => void;
   onCreate: () => void;
+  onDelete: (id: string) => void;
 }) {
+  const { user } = useUser();
   const atLimit = endpoints.length >= MAX_ENDPOINTS;
 
   return (
@@ -40,42 +44,54 @@ export function EndpointsSidebar({
         {endpoints.map((ep) => {
           const active = ep.id === selectedId;
           return (
-            <button
+            <div
               key={ep.id}
-              type="button"
-              onClick={() => onSelect(ep.id)}
-              aria-current={active ? "true" : undefined}
               className={cn(
-                "group flex flex-col gap-1 rounded-lg border px-3 py-2.5 text-left transition-colors",
+                "group relative rounded-lg border transition-colors",
                 active
                   ? "border-border-strong bg-surface-muted"
                   : "border-transparent hover:bg-surface-muted",
               )}
             >
-              <span className="flex items-center justify-between gap-2">
-                <span className="truncate text-sm font-medium text-foreground">
-                  {ep.name}
-                </span>
-                {ep.enabled ? (
-                  <span className="flex items-center gap-1 text-live">
-                    <span className="relative flex size-1.5">
-                      <span className="animate-live-pulse absolute inline-flex size-full rounded-full bg-live" />
+              <button
+                type="button"
+                onClick={() => onSelect(ep.id)}
+                aria-current={active ? "true" : undefined}
+                className="flex w-full flex-col gap-1 px-3 py-2.5 text-left"
+              >
+                <span className="flex items-center justify-between gap-2 pr-6">
+                  <span className="truncate text-sm font-medium text-foreground">
+                    {ep.name}
+                  </span>
+                  {ep.enabled ? (
+                    <span className="flex items-center gap-1 text-live">
+                      <span className="relative flex size-1.5">
+                        <span className="animate-live-pulse absolute inline-flex size-full rounded-full bg-live" />
+                      </span>
                     </span>
-                  </span>
-                ) : (
-                  <span className="size-1.5 rounded-full bg-border-strong" />
-                )}
-              </span>
-              <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-                <Radio className="size-3" aria-hidden />
-                {ep.requests.length} captured
-                {!ep.enabled && (
-                  <span className="ml-auto rounded bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border">
-                    Disabled
-                  </span>
-                )}
-              </span>
-            </button>
+                  ) : (
+                    <span className="size-1.5 rounded-full bg-border-strong" />
+                  )}
+                </span>
+                <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+                  <Radio className="size-3" aria-hidden />
+                  {ep.requests.length} captured
+                  {!ep.enabled && (
+                    <span className="ml-auto rounded bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border">
+                      Disabled
+                    </span>
+                  )}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(ep.id)}
+                aria-label={`Delete ${ep.name}`}
+                className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground opacity-0 transition-all hover:bg-danger-muted hover:text-danger focus-visible:opacity-100 group-hover:opacity-100"
+              >
+                <Trash2 className="size-3.5" aria-hidden />
+              </button>
+            </div>
           );
         })}
       </nav>
@@ -100,6 +116,21 @@ export function EndpointsSidebar({
             Endpoint limit reached ({MAX_ENDPOINTS} max)
           </p>
         )}
+      </div>
+
+      <div className="flex items-center gap-2.5 border-t border-border px-3 py-3">
+        <UserButton
+          appearance={{ elements: { avatarBox: "size-7" } }}
+          afterSignOutUrl="/"
+        />
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-xs font-medium text-foreground">
+            {user?.fullName ?? user?.username ?? "Signed in"}
+          </span>
+          <span className="truncate font-mono text-[11px] text-muted-foreground">
+            {user?.primaryEmailAddress?.emailAddress ?? ""}
+          </span>
+        </div>
       </div>
     </aside>
   );

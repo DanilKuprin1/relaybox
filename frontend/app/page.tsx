@@ -5,10 +5,13 @@ import {
   endpoints as seedEndpoints,
   type Endpoint,
 } from "@/lib/mock-data";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { Plus, Webhook } from "lucide-react";
 import { EndpointsSidebar } from "@/components/endpoints-sidebar";
 import { RequestList } from "@/components/request-list";
 import { RequestDetail } from "@/components/request-detail";
 import { CreateEndpointDialog } from "@/components/create-endpoint-dialog";
+import { SignInGate } from "@/components/sign-in-gate";
 
 function randomKey(len = 24) {
   const chars =
@@ -35,9 +38,11 @@ export default function Home() {
     [endpoints, selectedEndpointId],
   );
 
-  const selectedRequestId = selectedByEndpoint[selectedEndpoint.id] ?? null;
+  const selectedRequestId = selectedEndpoint
+    ? selectedByEndpoint[selectedEndpoint.id] ?? null
+    : null;
   const selectedRequest =
-    selectedEndpoint.requests.find((r) => r.id === selectedRequestId) ?? null;
+    selectedEndpoint?.requests.find((r) => r.id === selectedRequestId) ?? null;
 
   function handleSelectEndpoint(id: string) {
     setSelectedEndpointId(id);
@@ -74,6 +79,26 @@ export default function Home() {
     });
   }
 
+  function handleDeleteEndpoint(id: string) {
+    setEndpoints((prev) => {
+      const next = prev.filter((e) => e.id !== id);
+      // If we deleted the active endpoint, move selection to the first remaining one.
+      if (id === selectedEndpointId && next.length > 0) {
+        setSelectedEndpointId(next[0].id);
+        setSelectedByEndpoint((sel) =>
+          sel[next[0].id] !== undefined
+            ? sel
+            : { ...sel, [next[0].id]: next[0].requests[0]?.id ?? null },
+        );
+      }
+      return next;
+    });
+    setSelectedByEndpoint((prev) => {
+      const { [id]: _removed, ...rest } = prev;
+      return rest;
+    });
+  }
+
   function handleCreateEndpoint(name: string) {
     const newEndpoint: Endpoint = {
       id: `ep_${randomKey(6)}`,
@@ -90,26 +115,68 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
-      <EndpointsSidebar
-        endpoints={endpoints}
-        selectedId={selectedEndpoint.id}
-        onSelect={handleSelectEndpoint}
-        onCreate={() => setDialogOpen(true)}
-      />
-      <RequestList
-        endpoint={selectedEndpoint}
-        selectedRequestId={selectedRequestId}
-        onSelectRequest={handleSelectRequest}
-        onToggleEnabled={handleToggleEnabled}
-      />
-      <RequestDetail request={selectedRequest} onDelete={handleDeleteRequest} />
+    <>
+      <SignedOut>
+        <SignInGate />
+      </SignedOut>
+      <SignedIn>
+        <div className="flex h-screen w-full overflow-hidden">
+          <EndpointsSidebar
+            endpoints={endpoints}
+            selectedId={selectedEndpoint?.id ?? ""}
+            onSelect={handleSelectEndpoint}
+            onCreate={() => setDialogOpen(true)}
+            onDelete={handleDeleteEndpoint}
+          />
+          {selectedEndpoint ? (
+            <>
+              <RequestList
+                endpoint={selectedEndpoint}
+                selectedRequestId={selectedRequestId}
+                onSelectRequest={handleSelectRequest}
+                onToggleEnabled={handleToggleEnabled}
+              />
+              <RequestDetail
+                request={selectedRequest}
+                onDelete={handleDeleteRequest}
+              />
+            </>
+          ) : (
+            <NoEndpoints onCreate={() => setDialogOpen(true)} />
+          )}
 
-      <CreateEndpointDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onCreate={handleCreateEndpoint}
-      />
-    </div>
+          <CreateEndpointDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            onCreate={handleCreateEndpoint}
+          />
+        </div>
+      </SignedIn>
+    </>
+  );
+}
+
+function NoEndpoints({ onCreate }: { onCreate: () => void }) {
+  return (
+    <section className="flex flex-1 flex-col items-center justify-center bg-background px-6 text-center">
+      <div className="flex size-12 items-center justify-center rounded-xl bg-surface-muted text-muted-foreground ring-1 ring-border">
+        <Webhook className="size-6" aria-hidden />
+      </div>
+      <h2 className="mt-5 text-base font-semibold text-foreground">
+        No endpoints yet
+      </h2>
+      <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+        Create your first webhook endpoint to start capturing incoming
+        requests.
+      </p>
+      <button
+        type="button"
+        onClick={onCreate}
+        className="mt-5 flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+      >
+        <Plus className="size-4" aria-hidden />
+        New endpoint
+      </button>
+    </section>
   );
 }

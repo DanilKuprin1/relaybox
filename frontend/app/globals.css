@@ -28,6 +28,7 @@
 
   /* Status semantics */
   --danger: #dc2626;
+  --danger-muted: #fef2f2;
   --warning: #d97706;
 
   --radius: 0.625rem;
@@ -56,6 +57,7 @@
   --color-method-delete: var(--method-delete);
 
   --color-danger: var(--danger);
+  --color-danger-muted: var(--danger-muted);
   --color-warning: var(--warning);
 
   --font-sans: var(--font-geist-sans);
