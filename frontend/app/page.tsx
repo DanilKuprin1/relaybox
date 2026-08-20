@@ -5,7 +5,7 @@ import {
   endpoints as seedEndpoints,
   type Endpoint,
 } from "@/lib/mock-data";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
 import { Plus, Webhook } from "lucide-react";
 import { EndpointsSidebar } from "@/components/endpoints-sidebar";
 import { RequestList } from "@/components/request-list";
@@ -116,10 +116,10 @@ export default function Home() {
 
   return (
     <>
-      <SignedOut>
+      <Show when="signed-out">
         <SignInGate />
-      </SignedOut>
-      <SignedIn>
+      </Show>
+      <Show when="signed-in">
         <div className="flex h-screen w-full overflow-hidden">
           <EndpointsSidebar
             endpoints={endpoints}
@@ -151,7 +151,7 @@ export default function Home() {
             onCreate={handleCreateEndpoint}
           />
         </div>
-      </SignedIn>
+      </Show>
     </>
   );
 }
