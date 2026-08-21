@@ -17,8 +17,13 @@ export function relativeTime(iso: string) {
   return `${d}d ago`;
 }
 
+/**
+ * Formatted in UTC on purpose: it keeps server and client render output
+ * identical (avoiding a hydration mismatch) and an unambiguous timezone is
+ * what you want when correlating webhook deliveries with provider logs.
+ */
 export function fullTimestamp(iso: string) {
-  return new Date(iso).toLocaleString("en-US", {
+  return `${new Date(iso).toLocaleString("en-US", {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -26,7 +31,8 @@ export function fullTimestamp(iso: string) {
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  });
+    timeZone: "UTC",
+  })} UTC`;
 }
 
 export function formatBytes(bytes: number) {

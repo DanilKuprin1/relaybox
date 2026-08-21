@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, Inbox, Search } from "lucide-react";
 import type { CapturedRequest, Endpoint } from "@/lib/mock-data";
 import { endpointUrl } from "@/lib/mock-data";
-import { cn, relativeTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { RelativeTime } from "@/components/relative-time";
 import { MethodBadge } from "@/components/method-badge";
 import { CopyButton } from "@/components/copy-button";
 
@@ -163,7 +164,7 @@ function RequestRow({
           <span className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
             <span className="tabular-nums">{request.sourceIp}</span>
             <span aria-hidden>·</span>
-            <span>{relativeTime(request.receivedAt)}</span>
+            <RelativeTime iso={request.receivedAt} />
           </span>
         </span>
         <span className="shrink-0 font-mono text-[11px] tabular-nums text-live">
