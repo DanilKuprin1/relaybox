@@ -40,8 +40,10 @@ export function JsonViewer({ data }: { data: unknown }) {
   }
 
   return (
-    <pre className="scroll-thin overflow-auto rounded-lg border border-border bg-surface-muted p-4 font-mono text-xs leading-relaxed text-foreground">
-      <code>{nodes}</code>
+    <pre className="scroll-thin overflow-auto rounded-lg border border-border bg-surface-muted p-3 font-mono text-xs leading-relaxed text-foreground lg:p-4">
+      <code className="whitespace-pre-wrap break-words lg:whitespace-pre">
+        {nodes}
+      </code>
     </pre>
   );
 }

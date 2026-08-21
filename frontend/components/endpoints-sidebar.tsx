@@ -12,18 +12,25 @@ export function EndpointsSidebar({
   onSelect,
   onCreate,
   onDelete,
+  className,
 }: {
   endpoints: Endpoint[];
   selectedId: string;
   onSelect: (id: string) => void;
   onCreate: () => void;
   onDelete: (id: string) => void;
+  className?: string;
 }) {
   const { user } = useUser();
   const atLimit = endpoints.length >= MAX_ENDPOINTS;
 
   return (
-    <aside className="flex w-[264px] shrink-0 flex-col border-r border-border bg-surface">
+    <aside
+      className={cn(
+        "w-full shrink-0 flex-col border-border bg-surface lg:w-[264px] lg:border-r",
+        className,
+      )}
+    >
       <div className="flex h-14 items-center gap-2 border-b border-border px-4">
         <div className="flex size-7 items-center justify-center rounded-md bg-foreground text-background">
           <Webhook className="size-4" aria-hidden />
@@ -40,7 +47,7 @@ export function EndpointsSidebar({
         </span>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 px-2">
+      <nav className="scroll-thin flex flex-1 flex-col gap-1 overflow-y-auto px-2">
         {endpoints.map((ep) => {
           const active = ep.id === selectedId;
           return (
@@ -87,7 +94,7 @@ export function EndpointsSidebar({
                 type="button"
                 onClick={() => onDelete(ep.id)}
                 aria-label={`Delete ${ep.name}`}
-                className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground opacity-0 transition-all hover:bg-danger-muted hover:text-danger focus-visible:opacity-100 group-hover:opacity-100"
+                className="absolute right-1.5 top-1.5 rounded-md p-2 text-muted-foreground transition-all hover:bg-danger-muted hover:text-danger focus-visible:opacity-100 lg:p-1 lg:opacity-0 lg:group-hover:opacity-100"
               >
                 <Trash2 className="size-3.5" aria-hidden />
               </button>

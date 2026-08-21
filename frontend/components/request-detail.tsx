@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MousePointerClick, Trash2 } from "lucide-react";
+import { ChevronLeft, MousePointerClick, Trash2 } from "lucide-react";
 import type { CapturedRequest } from "@/lib/mock-data";
 import { cn, formatBytes, fullTimestamp } from "@/lib/utils";
 import { MethodBadge } from "@/components/method-badge";
@@ -21,15 +21,24 @@ const TABS: { id: Tab; label: string }[] = [
 export function RequestDetail({
   request,
   onDelete,
+  onBack,
+  className,
 }: {
   request: CapturedRequest | null;
   onDelete: (id: string) => void;
+  onBack?: () => void;
+  className?: string;
 }) {
   const [tab, setTab] = useState<Tab>("body");
 
   if (!request) {
     return (
-      <section className="flex flex-1 flex-col items-center justify-center gap-3 bg-background text-center">
+      <section
+        className={cn(
+          "flex-1 flex-col items-center justify-center gap-3 bg-background px-6 text-center",
+          className,
+        )}
+      >
         <div className="flex size-12 items-center justify-center rounded-full bg-surface-muted">
           <MousePointerClick className="size-5 text-muted-foreground" aria-hidden />
         </div>
@@ -46,11 +55,23 @@ export function RequestDetail({
   const queryEntries = Object.entries(request.query);
 
   return (
-    <section className="flex flex-1 flex-col bg-background">
+    <section
+      className={cn("min-w-0 flex-1 flex-col bg-background", className)}
+    >
       {/* Detail header */}
-      <header className="flex items-start justify-between gap-4 border-b border-border bg-surface px-6 py-4">
+      <header className="flex flex-col gap-3 border-b border-border bg-surface px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 lg:px-6 lg:py-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="Back to requests"
+                className="-ml-1.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground lg:hidden"
+              >
+                <ChevronLeft className="size-4" aria-hidden />
+              </button>
+            )}
             <MethodBadge method={request.method} size="md" />
             <span className="truncate font-mono text-sm font-medium text-foreground">
               {request.eventType ?? request.path}
@@ -75,7 +96,7 @@ export function RequestDetail({
       </header>
 
       {/* Quick facts */}
-      <div className="grid grid-cols-4 divide-x divide-border border-b border-border bg-surface">
+      <div className="grid grid-cols-2 divide-x divide-y divide-border border-b border-border bg-surface sm:grid-cols-4 sm:divide-y-0">
         <Fact label="Status" value={String(request.status)} accent="live" />
         <Fact label="Size" value={formatBytes(request.contentLength)} />
         <Fact label="Duration" value={`${request.durationMs}ms`} />
@@ -83,7 +104,7 @@ export function RequestDetail({
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-border bg-surface px-4">
+      <div className="scroll-thin flex items-center gap-1 overflow-x-auto border-b border-border bg-surface px-2 lg:px-4">
         {TABS.map((t) => {
           const count =
             t.id === "headers"
@@ -97,7 +118,7 @@ export function RequestDetail({
               type="button"
               onClick={() => setTab(t.id)}
               className={cn(
-                "relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors",
+                "relative flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors",
                 tab === t.id
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground",
@@ -118,7 +139,7 @@ export function RequestDetail({
       </div>
 
       {/* Tab content */}
-      <div className="scroll-thin flex-1 overflow-y-auto p-6">
+      <div className="scroll-thin flex-1 overflow-y-auto p-4 lg:p-6">
         {tab === "body" &&
           (request.body !== null ? (
             <JsonViewer data={request.body} />
@@ -176,7 +197,7 @@ function Fact({
   accent?: "live";
 }) {
   return (
-    <div className="px-6 py-3">
+    <div className="px-4 py-3 lg:px-6">
       <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
@@ -211,12 +232,12 @@ function KeyValueTable({
                 i % 2 === 0 ? "bg-surface" : "bg-surface-muted/50",
               )}
             >
-              <td className="w-[38%] border-b border-border px-4 py-2.5 font-mono font-medium text-muted-foreground">
+              <td className="w-[38%] border-b border-border px-3 py-2.5 font-mono font-medium break-words text-muted-foreground lg:px-4">
                 {k}
               </td>
               <td
                 className={cn(
-                  "border-b border-border px-4 py-2.5 break-all text-foreground",
+                  "border-b border-border px-3 py-2.5 break-all text-foreground lg:px-4",
                   mono && "font-mono",
                 )}
               >

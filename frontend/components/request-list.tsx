@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Inbox, Search } from "lucide-react";
+import { ChevronLeft, Inbox, Search } from "lucide-react";
 import type { CapturedRequest, Endpoint } from "@/lib/mock-data";
 import { endpointUrl } from "@/lib/mock-data";
 import { cn, relativeTime } from "@/lib/utils";
@@ -13,11 +13,15 @@ export function RequestList({
   selectedRequestId,
   onSelectRequest,
   onToggleEnabled,
+  onBack,
+  className,
 }: {
   endpoint: Endpoint;
   selectedRequestId: string | null;
   onSelectRequest: (id: string) => void;
   onToggleEnabled: () => void;
+  onBack?: () => void;
+  className?: string;
 }) {
   const [query, setQuery] = useState("");
 
@@ -33,11 +37,26 @@ export function RequestList({
   }, [endpoint.requests, query]);
 
   return (
-    <section className="flex w-[400px] shrink-0 flex-col border-r border-border bg-surface">
+    <section
+      className={cn(
+        "w-full shrink-0 flex-col border-border bg-surface lg:w-[400px] lg:border-r",
+        className,
+      )}
+    >
       {/* Endpoint header */}
       <header className="border-b border-border px-4 py-3">
         <div className="flex items-center justify-between gap-2">
-          <h1 className="truncate text-sm font-semibold text-foreground">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label="Back to endpoints"
+              className="-ml-1.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground lg:hidden"
+            >
+              <ChevronLeft className="size-4" aria-hidden />
+            </button>
+          )}
+          <h1 className="mr-auto truncate text-sm font-semibold text-foreground">
             {endpoint.name}
           </h1>
           <button
