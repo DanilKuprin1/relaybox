@@ -1,16 +1,15 @@
 "use client";
 
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
-import { ArrowRight, Radio, ShieldCheck, Webhook, Zap } from "lucide-react";
+import { ArrowRight, Radio, ShieldCheck, Zap } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 export function SignInGate() {
   return (
     <main className="flex min-h-dvh w-full items-center justify-center bg-background px-5 py-10">
       <div className="w-full max-w-md">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-foreground text-background">
-            <Webhook className="size-5" aria-hidden />
-          </div>
+        <div className="flex items-center gap-3">
+          <Logo className="size-7" />
           <span className="text-lg font-semibold tracking-tight">RelayBox</span>
         </div>
 

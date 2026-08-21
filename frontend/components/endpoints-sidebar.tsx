@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, Radio, Trash2, Webhook } from "lucide-react";
+import { Plus, Radio, Trash2 } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { UserButton, useUser } from "@clerk/nextjs";
 import type { Endpoint } from "@/lib/mock-data";
 import { MAX_ENDPOINTS } from "@/lib/mock-data";
@@ -31,10 +32,8 @@ export function EndpointsSidebar({
         className,
       )}
     >
-      <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-        <div className="flex size-7 items-center justify-center rounded-md bg-foreground text-background">
-          <Webhook className="size-4" aria-hidden />
-        </div>
+      <div className="flex h-14 items-center gap-2.5 border-b border-border px-4">
+        <Logo className="size-[22px]" />
         <span className="font-semibold tracking-tight">RelayBox</span>
       </div>
 
