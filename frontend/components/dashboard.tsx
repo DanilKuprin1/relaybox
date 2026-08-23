@@ -108,7 +108,8 @@ export function Dashboard() {
       return next;
     });
     setSelectedByEndpoint((prev) => {
-      const { [id]: _removed, ...rest } = prev;
+      const rest = { ...prev };
+      delete rest[id];
       return rest;
     });
   }

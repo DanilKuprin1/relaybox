@@ -3,28 +3,37 @@
 import { useEffect, useState } from "react";
 import { Webhook, X } from "lucide-react";
 
-export function CreateEndpointDialog({
-  open,
-  onClose,
-  onCreate,
-}: {
+type CreateEndpointDialogProps = {
   open: boolean;
   onClose: () => void;
   onCreate: (name: string) => void;
-}) {
+};
+
+/**
+ * Closing unmounts the dialog body, so its form state resets on the next open
+ * without an effect having to clear it.
+ */
+export function CreateEndpointDialog({
+  open,
+  ...props
+}: CreateEndpointDialogProps) {
+  if (!open) return null;
+  return <EndpointDialog {...props} />;
+}
+
+function EndpointDialog({
+  onClose,
+  onCreate,
+}: Omit<CreateEndpointDialogProps, "open">) {
   const [name, setName] = useState("");
 
   useEffect(() => {
-    if (!open) return;
-    setName("");
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
+  }, [onClose]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

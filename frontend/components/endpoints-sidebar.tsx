@@ -125,10 +125,7 @@ export function EndpointsSidebar({
       </div>
 
       <div className="flex items-center gap-2.5 border-t border-border px-3 py-3">
-        <UserButton
-          appearance={{ elements: { avatarBox: "size-7" } }}
-          afterSignOutUrl="/"
-        />
+        <UserButton appearance={{ elements: { avatarBox: "size-7" } }} />
         <div className="flex min-w-0 flex-col">
           <span className="truncate text-xs font-medium text-foreground">
             {user?.fullName ?? user?.username ?? "Signed in"}
