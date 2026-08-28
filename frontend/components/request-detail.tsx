@@ -74,7 +74,7 @@ export function RequestDetail({
             )}
             <MethodBadge method={request.method} size="md" />
             <span className="truncate font-mono text-sm font-medium text-foreground">
-              {request.eventType ?? request.path}
+              {request.path}
             </span>
           </div>
           <p className="mt-1.5 font-mono text-xs text-muted-foreground">
@@ -96,10 +96,9 @@ export function RequestDetail({
       </header>
 
       {/* Quick facts */}
-      <div className="grid grid-cols-2 divide-x divide-y divide-border border-b border-border bg-surface sm:grid-cols-4 sm:divide-y-0">
+      <div className="grid grid-cols-3 divide-x divide-border border-b border-border bg-surface">
         <Fact label="Status" value={String(request.status)} accent="live" />
         <Fact label="Size" value={formatBytes(request.contentLength)} />
-        <Fact label="Duration" value={`${request.durationMs}ms`} />
         <Fact label="Protocol" value={request.protocol} />
       </div>
 
@@ -170,13 +169,11 @@ export function RequestDetail({
               ["Request ID", request.id],
               ["Method", request.method],
               ["Path", request.path],
-              ["Event type", request.eventType ?? "—"],
               ["Source IP", request.sourceIp],
               ["User agent", request.userAgent],
               ["Content type", request.contentType],
               ["Content length", formatBytes(request.contentLength)],
               ["Protocol", request.protocol],
-              ["Processing time", `${request.durationMs}ms`],
               ["Received at", fullTimestamp(request.receivedAt)],
             ]}
             mono

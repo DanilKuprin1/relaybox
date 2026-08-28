@@ -4,14 +4,12 @@ export type CapturedRequest = {
   id: string;
   method: HttpMethod;
   path: string;
-  eventType?: string;
   status: number;
   sourceIp: string;
   userAgent: string;
   contentType: string;
   contentLength: number;
   protocol: string;
-  durationMs: number;
   receivedAt: string; // ISO
   query: Record<string, string>;
   headers: Record<string, string>;
@@ -50,14 +48,12 @@ export const endpoints: Endpoint[] = [
         id: "req_9f3c",
         method: "POST",
         path: "/hooks/ZHLcrYJ6KlaH3qN8vT2wD9x",
-        eventType: "payment_intent.payment_failed",
         status: 200,
         sourceIp: "54.187.174.169",
         userAgent: "Stripe/1.0 (+https://stripe.com/docs/webhooks)",
         contentType: "application/json",
         contentLength: 412,
         protocol: "HTTP/1.1",
-        durationMs: 34,
         receivedAt: agoSec(12),
         query: {},
         headers: {
@@ -92,14 +88,12 @@ export const endpoints: Endpoint[] = [
         id: "req_7a21",
         method: "POST",
         path: "/hooks/ZHLcrYJ6KlaH3qN8vT2wD9x",
-        eventType: "checkout.session.completed",
         status: 200,
         sourceIp: "54.187.205.235",
         userAgent: "Stripe/1.0 (+https://stripe.com/docs/webhooks)",
         contentType: "application/json",
         contentLength: 528,
         protocol: "HTTP/1.1",
-        durationMs: 41,
         receivedAt: ago(8),
         query: {},
         headers: {
@@ -130,14 +124,12 @@ export const endpoints: Endpoint[] = [
         id: "req_5c88",
         method: "POST",
         path: "/hooks/ZHLcrYJ6KlaH3qN8vT2wD9x",
-        eventType: "customer.subscription.updated",
         status: 200,
         sourceIp: "54.187.174.169",
         userAgent: "Stripe/1.0 (+https://stripe.com/docs/webhooks)",
         contentType: "application/json",
         contentLength: 367,
         protocol: "HTTP/1.1",
-        durationMs: 29,
         receivedAt: ago(23),
         query: {},
         headers: {
@@ -175,14 +167,12 @@ export const endpoints: Endpoint[] = [
         id: "req_gh01",
         method: "POST",
         path: "/hooks/Q9mKf2Lp7Rt4Ws8Yx3Vb6Nc",
-        eventType: "push",
         status: 200,
         sourceIp: "140.82.115.246",
         userAgent: "GitHub-Hookshot/8f4a1c2",
         contentType: "application/json",
         contentLength: 743,
         protocol: "HTTP/1.1",
-        durationMs: 52,
         receivedAt: ago(2),
         query: {},
         headers: {
@@ -216,14 +206,12 @@ export const endpoints: Endpoint[] = [
         id: "req_gh02",
         method: "POST",
         path: "/hooks/Q9mKf2Lp7Rt4Ws8Yx3Vb6Nc",
-        eventType: "pull_request",
         status: 200,
         sourceIp: "140.82.115.247",
         userAgent: "GitHub-Hookshot/3b9d0e1",
         contentType: "application/json",
         contentLength: 611,
         protocol: "HTTP/1.1",
-        durationMs: 47,
         receivedAt: ago(19),
         query: { installation: "48291043" },
         headers: {
@@ -251,14 +239,12 @@ export const endpoints: Endpoint[] = [
         id: "req_gh03",
         method: "POST",
         path: "/hooks/Q9mKf2Lp7Rt4Ws8Yx3Vb6Nc",
-        eventType: "ping",
         status: 200,
         sourceIp: "140.82.115.246",
         userAgent: "GitHub-Hookshot/1a0b9c8",
         contentType: "application/json",
         contentLength: 198,
         protocol: "HTTP/1.1",
-        durationMs: 22,
         receivedAt: ago(64),
         query: {},
         headers: {
@@ -285,14 +271,12 @@ export const endpoints: Endpoint[] = [
         id: "req_sh01",
         method: "POST",
         path: "/hooks/Bx4Hn9Qw2Es7Rt1Yu6Ip3Ol",
-        eventType: "orders/create",
         status: 200,
         sourceIp: "23.227.38.32",
         userAgent: "Shopify-Captain-Hook",
         contentType: "application/json",
         contentLength: 489,
         protocol: "HTTP/1.1",
-        durationMs: 38,
         receivedAt: ago(140),
         query: {},
         headers: {

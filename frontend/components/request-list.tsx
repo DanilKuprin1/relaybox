@@ -32,7 +32,7 @@ export function RequestList({
     return endpoint.requests.filter(
       (r) =>
         r.method.toLowerCase().includes(q) ||
-        r.eventType?.toLowerCase().includes(q) ||
+        r.path.toLowerCase().includes(q) ||
         r.sourceIp.includes(q),
     );
   }, [endpoint.requests, query]);
@@ -159,7 +159,7 @@ function RequestRow({
         <MethodBadge method={request.method} />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-mono text-xs font-medium text-foreground">
-            {request.eventType ?? request.path}
+            {request.path}
           </span>
           <span className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
             <span className="tabular-nums">{request.sourceIp}</span>
