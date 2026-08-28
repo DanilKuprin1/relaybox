@@ -32,7 +32,11 @@ export function endpointUrl(publicKey: string) {
   return `${BASE_URL}/${publicKey}`;
 }
 
-const now = Date.now();
+// Fixed anchor instead of Date.now(): mock timestamps must be identical on the
+// server and the client, otherwise the absolute timestamp rendered in the
+// detail pane triggers a hydration mismatch. Captured requests have fixed
+// capture times anyway; the live "ago" labels are handled by <RelativeTime />.
+const now = new Date("2026-08-28T16:17:24Z").getTime();
 const ago = (mins: number) => new Date(now - mins * 60_000).toISOString();
 const agoSec = (secs: number) => new Date(now - secs * 1000).toISOString();
 
