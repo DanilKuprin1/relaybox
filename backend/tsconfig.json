@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "resolvePackageJsonExports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
@@ -21,6 +21,15 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["node", "jest"]
-  }
+    "types": [
+      "node",
+      "jest"
+    ],
+    "resolveJsonModule": true
+  },
+  "exclude": [
+    "prisma.config.ts",
+    "dist",
+    "node_modules"
+  ]
 }
