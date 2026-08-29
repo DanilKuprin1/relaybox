@@ -1,7 +1,7 @@
 import { getAuth, SessionAuthObject } from '@clerk/express';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './auth.guard.js';
 
 vi.mock('@clerk/express', async () => {
   const actual =
