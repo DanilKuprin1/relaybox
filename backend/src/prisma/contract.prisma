@@ -1,1 +1,58 @@
 // use prisma-next
+
+model User {
+  id      Int    @id @default(autoincrement())
+  clerkId String @unique
+  webhooks Webhook[]
+}
+
+model Webhook {
+  id             BigInt            @id @default(autoincrement())
+  publicId       String            @unique
+  ingestKey      String            @unique
+  name           String
+  userId         Int
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled        Boolean           @default(true)
+  retentionLimit Int               @default(100)
+  requests Request[]
+  createdAt      TimestamptzString @default(now())
+  updatedAt      temporal.updatedAtString()
+
+  @@index([userId])
+}
+
+model Request {
+  id        BigInt  @id @default(autoincrement())
+  publicId  String  @unique
+  webhookId BigInt
+  webhook   Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  // request line
+  method    VarChar(10)
+  path      String
+  rawQuery  String      @default("")
+  query     Jsonb       @default("{}")
+  protocol  VarChar(10)
+
+  // headers + body
+  headers       Jsonb   @default("{}")
+  rawBody       Bytes?
+  body          Jsonb?
+  contentType   String?
+  contentLength Int?
+  bodySize      Int     @default(0)
+  bodyTruncated Boolean @default(false)
+
+  // our response
+  status SmallInt
+
+  // network
+  sourceIp  Inet?
+  userAgent String?
+
+  receivedAt TimestamptzString
+  createdAt  TimestamptzString @default(now())
+
+  @@index([webhookId, receivedAt])
+}

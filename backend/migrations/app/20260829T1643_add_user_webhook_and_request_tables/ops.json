@@ -1,0 +1,505 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.request",
+    "label": "Create table \"request\"",
+    "summary": "Creates table \"request\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "request"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"request\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"request\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"request\"",
+        "sql": "CREATE TABLE \"public\".\"request\" (\n  \"body\" jsonb,\n  \"bodySize\" int4 DEFAULT 0 NOT NULL,\n  \"bodyTruncated\" bool DEFAULT false NOT NULL,\n  \"contentLength\" int4,\n  \"contentType\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"headers\" jsonb DEFAULT '\"{}\"'::jsonb NOT NULL,\n  \"id\" BIGSERIAL NOT NULL,\n  \"method\" character varying(10) NOT NULL,\n  \"path\" text NOT NULL,\n  \"protocol\" character varying(10) NOT NULL,\n  \"publicId\" text NOT NULL,\n  \"query\" jsonb DEFAULT '\"{}\"'::jsonb NOT NULL,\n  \"rawBody\" bytea,\n  \"rawQuery\" text DEFAULT '' NOT NULL,\n  \"receivedAt\" timestamptz NOT NULL,\n  \"sourceIp\" inet,\n  \"status\" int2 NOT NULL,\n  \"userAgent\" text,\n  \"webhookId\" int8 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"request\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"request\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.user",
+    "label": "Create table \"user\"",
+    "summary": "Creates table \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"user\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"user\"",
+        "sql": "CREATE TABLE \"public\".\"user\" (\n  \"clerkId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"user\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.webhook",
+    "label": "Create table \"webhook\"",
+    "summary": "Creates table \"webhook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "webhook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"webhook\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"webhook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"webhook\"",
+        "sql": "CREATE TABLE \"public\".\"webhook\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"enabled\" bool DEFAULT true NOT NULL,\n  \"id\" BIGSERIAL NOT NULL,\n  \"ingestKey\" text NOT NULL,\n  \"name\" text NOT NULL,\n  \"publicId\" text NOT NULL,\n  \"retentionLimit\" int4 DEFAULT 100 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"webhook\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"webhook\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.request.request_publicId_key",
+    "label": "Add unique constraint on \"request\" (publicId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "request_publicId_key",
+        "table": "request"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"request_publicId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "request_publicId_key",
+          "public",
+          "\"public\".\"request\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"request_publicId_key\"",
+        "sql": "ALTER TABLE \"public\".\"request\" ADD CONSTRAINT \"request_publicId_key\" UNIQUE (\"publicId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"request_publicId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "request_publicId_key",
+          "public",
+          "\"public\".\"request\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.user.user_clerkId_key",
+    "label": "Add unique constraint on \"user\" (clerkId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "user_clerkId_key",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"user_clerkId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_clerkId_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"user_clerkId_key\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD CONSTRAINT \"user_clerkId_key\" UNIQUE (\"clerkId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"user_clerkId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_clerkId_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.webhook.webhook_publicId_key",
+    "label": "Add unique constraint on \"webhook\" (publicId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "webhook_publicId_key",
+        "table": "webhook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"webhook_publicId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "webhook_publicId_key",
+          "public",
+          "\"public\".\"webhook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"webhook_publicId_key\"",
+        "sql": "ALTER TABLE \"public\".\"webhook\" ADD CONSTRAINT \"webhook_publicId_key\" UNIQUE (\"publicId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"webhook_publicId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "webhook_publicId_key",
+          "public",
+          "\"public\".\"webhook\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.webhook.webhook_ingestKey_key",
+    "label": "Add unique constraint on \"webhook\" (ingestKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "webhook_ingestKey_key",
+        "table": "webhook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"webhook_ingestKey_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "webhook_ingestKey_key",
+          "public",
+          "\"public\".\"webhook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"webhook_ingestKey_key\"",
+        "sql": "ALTER TABLE \"public\".\"webhook\" ADD CONSTRAINT \"webhook_ingestKey_key\" UNIQUE (\"ingestKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"webhook_ingestKey_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "webhook_ingestKey_key",
+          "public",
+          "\"public\".\"webhook\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.request.request_webhookId_idx_16330c4e",
+    "label": "Create index \"request_webhookId_idx_16330c4e\" on \"request\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "request_webhookId_idx_16330c4e",
+        "table": "request"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"request_webhookId_idx_16330c4e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"request_webhookId_idx_16330c4e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"request_webhookId_idx_16330c4e\"",
+        "sql": "CREATE INDEX \"request_webhookId_idx_16330c4e\" ON \"public\".\"request\" (\"webhookId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"request_webhookId_idx_16330c4e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"request_webhookId_idx_16330c4e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.request.request_webhookId_receivedAt_idx_c8241a70",
+    "label": "Create index \"request_webhookId_receivedAt_idx_c8241a70\" on \"request\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "request_webhookId_receivedAt_idx_c8241a70",
+        "table": "request"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"request_webhookId_receivedAt_idx_c8241a70\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"request_webhookId_receivedAt_idx_c8241a70\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"request_webhookId_receivedAt_idx_c8241a70\"",
+        "sql": "CREATE INDEX \"request_webhookId_receivedAt_idx_c8241a70\" ON \"public\".\"request\" (\"webhookId\", \"receivedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"request_webhookId_receivedAt_idx_c8241a70\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"request_webhookId_receivedAt_idx_c8241a70\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.webhook.webhook_userId_idx_a489d58a",
+    "label": "Create index \"webhook_userId_idx_a489d58a\" on \"webhook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "webhook_userId_idx_a489d58a",
+        "table": "webhook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"webhook_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"webhook_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"webhook_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"webhook_userId_idx_a489d58a\" ON \"public\".\"webhook\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"webhook_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"webhook_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.request.request_webhookId_fkey",
+    "label": "Add foreign key \"request_webhookId_fkey\" on \"request\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "request_webhookId_fkey",
+        "table": "request"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"request_webhookId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "request_webhookId_fkey",
+          "public",
+          "\"public\".\"request\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"request_webhookId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"request\"\nADD CONSTRAINT \"request_webhookId_fkey\"\nFOREIGN KEY (\"webhookId\")\nREFERENCES \"public\".\"webhook\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"request_webhookId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "request_webhookId_fkey",
+          "public",
+          "\"public\".\"request\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.webhook.webhook_userId_fkey",
+    "label": "Add foreign key \"webhook_userId_fkey\" on \"webhook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "webhook_userId_fkey",
+        "table": "webhook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"webhook_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "webhook_userId_fkey",
+          "public",
+          "\"public\".\"webhook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"webhook_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"webhook\"\nADD CONSTRAINT \"webhook_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"webhook_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "webhook_userId_fkey",
+          "public",
+          "\"public\".\"webhook\""
+        ]
+      }
+    ]
+  }
+]
