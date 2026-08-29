@@ -1,12 +1,12 @@
 import { getAuth, SessionAuthObject } from '@clerk/express';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthGuard } from './auth.guard';
 
-jest.mock('@clerk/express', () => {
-  return {
-    ...jest.requireActual<typeof import('@clerk/express')>('@clerk/express'),
-    getAuth: jest.fn(),
-  };
+vi.mock('@clerk/express', async () => {
+  const actual =
+    await vi.importActual<typeof import('@clerk/express')>('@clerk/express');
+  return { ...actual, getAuth: vi.fn() };
 });
 
 type AuthenticatedRequest = {
@@ -15,23 +15,23 @@ type AuthenticatedRequest = {
 
 const ctx = (request: AuthenticatedRequest) => {
   return {
-    switchToHttp: jest
+    switchToHttp: vi
       .fn()
-      .mockReturnValue({ getRequest: jest.fn().mockReturnValue(request) }),
+      .mockReturnValue({ getRequest: vi.fn().mockReturnValue(request) }),
   };
 };
 
 describe('AuthGuard', () => {
   const authGuard = new AuthGuard();
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(authGuard).toBeDefined();
   });
 
   it('returns true and attaches user when authenticated', () => {
-    jest.mocked(getAuth).mockReturnValue({
+    vi.mocked(getAuth).mockReturnValue({
       isAuthenticated: true,
       userId: '4',
     } as SessionAuthObject);
@@ -42,8 +42,9 @@ describe('AuthGuard', () => {
     expect(result).toEqual(true);
     expect(request.user).toEqual({ clerkUserId: '4' });
   });
+
   it('throws UnauthorizedException when not authenticated', () => {
-    jest.mocked(getAuth).mockReturnValue({
+    vi.mocked(getAuth).mockReturnValue({
       isAuthenticated: false,
       userId: null,
     } as SessionAuthObject);
@@ -54,7 +55,7 @@ describe('AuthGuard', () => {
   });
 
   it('throws when authenticated but userId missing', () => {
-    jest.mocked(getAuth).mockReturnValue({
+    vi.mocked(getAuth).mockReturnValue({
       isAuthenticated: true,
     } as SessionAuthObject);
     const request: AuthenticatedRequest = {};
