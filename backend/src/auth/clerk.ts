@@ -9,6 +9,7 @@ export const clerkClientProvider: Provider = {
   provide: CLERK_CLIENT,
   useFactory: (config: ConfigService): ClerkClient =>
     createClerkClient({
+      publishableKey: config.getOrThrow<string>('CLERK_PUBLISHABLE_KEY'),
       secretKey: config.getOrThrow<string>('CLERK_SECRET_KEY'),
     }),
   inject: [ConfigService],
