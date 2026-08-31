@@ -2,16 +2,13 @@ import { getAuth, SessionAuthObject } from '@clerk/express';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthGuard } from './auth.guard.js';
+import { AuthenticatedRequest } from './auth.types.js';
 
 vi.mock('@clerk/express', async () => {
   const actual =
     await vi.importActual<typeof import('@clerk/express')>('@clerk/express');
   return { ...actual, getAuth: vi.fn() };
 });
-
-type AuthenticatedRequest = {
-  user?: { clerkUserId: string };
-};
 
 const ctx = (request: AuthenticatedRequest) => {
   return {
@@ -35,7 +32,7 @@ describe('AuthGuard', () => {
       isAuthenticated: true,
       userId: '4',
     } as SessionAuthObject);
-    const request: AuthenticatedRequest = {};
+    const request = {} as AuthenticatedRequest;
     const result = authGuard.canActivate(
       ctx(request) as unknown as ExecutionContext,
     );
@@ -48,7 +45,7 @@ describe('AuthGuard', () => {
       isAuthenticated: false,
       userId: null,
     } as SessionAuthObject);
-    const request: AuthenticatedRequest = {};
+    const request = {} as AuthenticatedRequest;
     expect(() => {
       authGuard.canActivate(ctx(request) as unknown as ExecutionContext);
     }).toThrow(UnauthorizedException);
@@ -58,7 +55,7 @@ describe('AuthGuard', () => {
     vi.mocked(getAuth).mockReturnValue({
       isAuthenticated: true,
     } as SessionAuthObject);
-    const request: AuthenticatedRequest = {};
+    const request = {} as AuthenticatedRequest;
     expect(() => {
       authGuard.canActivate(ctx(request) as unknown as ExecutionContext);
     }).toThrow(UnauthorizedException);
