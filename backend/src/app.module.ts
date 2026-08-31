@@ -1,27 +1,28 @@
 import {
-  ZodValidationPipe,
-  ZodSerializerInterceptor,
-  ZodSerializationException,
-} from 'nestjs-zod';
+  ArgumentsHost,
+  Catch,
+  HttpException,
+  Logger,
+  Module,
+} from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import {
-  APP_PIPE,
-  APP_INTERCEPTOR,
   APP_FILTER,
+  APP_INTERCEPTOR,
+  APP_PIPE,
   BaseExceptionFilter,
 } from '@nestjs/core';
-import { ZodError } from 'zod';
 import {
-  Module,
-  HttpException,
-  ArgumentsHost,
-  Logger,
-  Catch,
-} from '@nestjs/common';
+  ZodSerializationException,
+  ZodSerializerInterceptor,
+  ZodValidationPipe,
+} from 'nestjs-zod';
+import { ZodError } from 'zod';
 import { AuthModule } from './auth/auth.module.js';
-import { ConfigModule } from '@nestjs/config';
 import { envSchema } from './config/env.schema.js';
-import { DbService } from './prisma/db.service.js';
 import { DbModule } from './prisma/db.module.js';
+import { DbService } from './prisma/db.service.js';
+import { WebhooksModule } from './webhooks/webhooks.module.js';
 
 @Catch(HttpException)
 class HttpExceptionFilter extends BaseExceptionFilter {
@@ -48,6 +49,7 @@ class HttpExceptionFilter extends BaseExceptionFilter {
     }),
     AuthModule,
     DbModule,
+    WebhooksModule,
   ],
   controllers: [],
   providers: [
