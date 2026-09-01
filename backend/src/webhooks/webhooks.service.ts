@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { DbUser } from '../auth/auth.types.js';
 import { generateId } from '../config/nanoid.js';
 import { DbService } from '../prisma/db.service.js';
@@ -6,16 +6,23 @@ import { CreateWebhookDto } from './dto/create-webhook.dto.js';
 
 @Injectable()
 export class WebhooksService {
+  private readonly logger = new Logger(WebhooksService.name);
+
   constructor(private db: DbService) {}
 
   async create(user: DbUser, createWebhookDto: CreateWebhookDto) {
-    const newUser = await this.db.dbConnection.orm.public.Webhook.create({
+    this.logger.debug({ userId: user.id }, 'Creating webhook');
+    const webhook = await this.db.dbConnection.orm.public.Webhook.create({
       name: createWebhookDto.name,
       publicId: 'web_' + generateId(),
       ingestKey: generateId(),
       userId: user.id,
     });
-    return newUser;
+    this.logger.log(
+      { userId: user.id, webhookPublicId: webhook.publicId },
+      'Webhook created',
+    );
+    return webhook;
   }
 
   async findAll(user: DbUser) {
@@ -24,6 +31,10 @@ export class WebhooksService {
     })
       .orderBy((w) => w.createdAt.desc())
       .all();
+    this.logger.debug(
+      { userId: user.id, webhookCount: webhooks.length },
+      'Webhooks listed',
+    );
     return { data: webhooks };
   }
 
@@ -34,6 +45,17 @@ export class WebhooksService {
     })
       .orderBy((w) => w.createdAt.desc())
       .first();
+    if (!webhook) {
+      this.logger.warn(
+        { userId: user.id, webhookPublicId: publicId },
+        'Webhook not found',
+      );
+    } else {
+      this.logger.debug(
+        { userId: user.id, webhookPublicId: publicId },
+        'Webhook found',
+      );
+    }
     return webhook;
   }
 
@@ -44,6 +66,10 @@ export class WebhooksService {
     }).first();
 
     if (!webhook) {
+      this.logger.warn(
+        { userId: user.id, webhookPublicId: publicId },
+        'Cannot list requests for missing webhook',
+      );
       throw new NotFoundException();
     }
 
@@ -52,6 +78,15 @@ export class WebhooksService {
     })
       .orderBy((r) => r.receivedAt.desc())
       .all();
+
+    this.logger.debug(
+      {
+        userId: user.id,
+        webhookPublicId: publicId,
+        requestCount: requests.length,
+      },
+      'Webhook requests listed',
+    );
 
     return {
       data: requests.map((request) => ({
@@ -62,9 +97,17 @@ export class WebhooksService {
   }
 
   async remove(user: DbUser, publicId: string) {
+    this.logger.debug(
+      { userId: user.id, webhookPublicId: publicId },
+      'Deleting webhook',
+    );
     await this.db.dbConnection.orm.public.Webhook.where({
       userId: user.id,
       publicId: publicId,
     }).delete();
+    this.logger.log(
+      { userId: user.id, webhookPublicId: publicId },
+      'Webhook deleted',
+    );
   }
 }

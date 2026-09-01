@@ -2,13 +2,20 @@ import { ClerkClient, clerkMiddleware } from '@clerk/express';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import express from 'express';
+import { Logger, PinoLogger } from 'nestjs-pino';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module.js';
 import { CLERK_CLIENT } from './auth/clerk.js';
+import { bootstrapLogger } from './config/logger.js';
 import { MAX_CAPTURE_BYTES } from './ingest/ingest.types.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false,
+    bufferLogs: true,
+  });
+  app.useLogger(app.get(Logger));
+  app.enableShutdownHooks();
 
   app.use(
     '/hooks',
@@ -28,7 +35,12 @@ async function bootstrap() {
     credentials: true,
   });
   app.use(clerkMiddleware({ clerkClient: app.get<ClerkClient>(CLERK_CLIENT) }));
-  await app.listen(process.env.PORT ?? 3001);
+  const port = process.env.PORT ?? 3001;
+  await app.listen(port);
+  app.get(PinoLogger).info({ port }, 'Relaybox backend is listening');
 }
 
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  bootstrapLogger.fatal({ err: error }, 'Backend startup failed');
+  process.exitCode = 1;
+});

@@ -62,3 +62,6 @@ dist/
 .claude
 .devin
 .cursor
+
+# Cache
+.pnpm-store
