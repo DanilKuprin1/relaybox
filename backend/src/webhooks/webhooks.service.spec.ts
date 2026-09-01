@@ -9,18 +9,12 @@ vi.mock('../config/nanoid.js', () => ({
 
 const user: DbUser = { id: 7, clerkId: 'user_test_123' };
 
-/**
- * Builds a service backed by a stubbed query chain. Each test gets its own
- * mocks so call assertions can't leak between cases.
- */
 function setup() {
   const create = vi.fn();
   const all = vi.fn();
   const first = vi.fn();
   const del = vi.fn();
 
-  // `orderBy` takes a callback that builds the sort expression; invoking it
-  // with a stub column keeps that arrow function covered.
   const orderBy = vi.fn((cb: (w: never) => unknown) => {
     cb({ createdAt: { desc: () => undefined } } as never);
     return { all, first };

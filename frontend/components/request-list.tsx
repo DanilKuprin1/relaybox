@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { ChevronLeft, Inbox, Search } from "lucide-react";
-import type { CapturedRequest, Endpoint } from "@/lib/mock-data";
-import { endpointUrl } from "@/lib/mock-data";
+import type { CapturedRequest, Endpoint } from "@/lib/types";
+import { endpointUrl } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { RelativeTime } from "@/components/relative-time";
 import { MethodBadge } from "@/components/method-badge";
@@ -11,16 +11,16 @@ import { CopyButton } from "@/components/copy-button";
 
 export function RequestList({
   endpoint,
+  requests,
   selectedRequestId,
   onSelectRequest,
-  onToggleEnabled,
   onBack,
   className,
 }: {
   endpoint: Endpoint;
+  requests: CapturedRequest[];
   selectedRequestId: string | null;
   onSelectRequest: (id: string) => void;
-  onToggleEnabled: () => void;
   onBack?: () => void;
   className?: string;
 }) {
@@ -28,14 +28,14 @@ export function RequestList({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return endpoint.requests;
-    return endpoint.requests.filter(
+    if (!q) return requests;
+    return requests.filter(
       (r) =>
         r.method.toLowerCase().includes(q) ||
         r.path.toLowerCase().includes(q) ||
-        r.sourceIp.includes(q),
+        (r.sourceIp?.includes(q) ?? false),
     );
-  }, [endpoint.requests, query]);
+  }, [requests, query]);
 
   return (
     <section
@@ -60,32 +60,21 @@ export function RequestList({
           <h1 className="mr-auto truncate text-sm font-semibold text-foreground">
             {endpoint.name}
           </h1>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={endpoint.enabled}
-            onClick={onToggleEnabled}
+          <span
+            aria-label={endpoint.enabled ? "Active" : "Paused"}
             className={cn(
-              "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
+              "size-2 shrink-0 rounded-full",
               endpoint.enabled ? "bg-live" : "bg-border-strong",
             )}
-          >
-            <span className="sr-only">Toggle endpoint</span>
-            <span
-              className={cn(
-                "inline-block size-4 transform rounded-full bg-surface shadow transition-transform",
-                endpoint.enabled ? "translate-x-4" : "translate-x-0.5",
-              )}
-            />
-          </button>
+          />
         </div>
 
         <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-border bg-surface-muted p-1 pl-2.5">
           <span className="truncate font-mono text-xs text-muted-foreground">
-            {endpointUrl(endpoint.publicKey)}
+            {endpointUrl(endpoint.ingestKey)}
           </span>
           <CopyButton
-            value={endpointUrl(endpoint.publicKey)}
+            value={endpointUrl(endpoint.ingestKey)}
             className="ml-auto shrink-0"
             label="Copy"
           />
@@ -113,10 +102,10 @@ export function RequestList({
           <ul>
             {filtered.map((req) => (
               <RequestRow
-                key={req.id}
+                key={req.publicId}
                 request={req}
-                active={req.id === selectedRequestId}
-                onSelect={() => onSelectRequest(req.id)}
+                active={req.publicId === selectedRequestId}
+                onSelect={() => onSelectRequest(req.publicId)}
               />
             ))}
           </ul>
@@ -128,7 +117,7 @@ export function RequestList({
         <span className="font-mono tabular-nums text-foreground">
           {filtered.length}
         </span>{" "}
-        of {endpoint.requests.length} · retains last 100
+        of {requests.length} · retains last 100
       </footer>
     </section>
   );

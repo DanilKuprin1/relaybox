@@ -1,11 +1,10 @@
-import type { HttpMethod } from "@/lib/mock-data";
 import { cn, methodTokens } from "@/lib/utils";
 
 export function MethodBadge({
   method,
   size = "sm",
 }: {
-  method: HttpMethod;
+  method: string;
   size?: "sm" | "md";
 }) {
   const t = methodTokens(method);

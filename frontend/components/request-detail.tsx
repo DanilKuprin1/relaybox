@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, MousePointerClick, Trash2 } from "lucide-react";
-import type { CapturedRequest } from "@/lib/mock-data";
+import type { CapturedRequest } from "@/lib/types";
 import { cn, formatBytes, fullTimestamp } from "@/lib/utils";
 import { MethodBadge } from "@/components/method-badge";
 import { CopyButton } from "@/components/copy-button";
@@ -79,14 +79,14 @@ export function RequestDetail({
           </div>
           <p className="mt-1.5 font-mono text-xs text-muted-foreground">
             {fullTimestamp(request.receivedAt)} · id{" "}
-            <span className="text-foreground">{request.id}</span>
+            <span className="text-foreground">{request.publicId}</span>
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <CopyButton value={request.rawBody} label="Copy body" />
           <button
             type="button"
-            onClick={() => onDelete(request.id)}
+            onClick={() => onDelete(request.publicId)}
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2 py-1 text-xs font-medium text-danger transition-colors hover:border-danger/40 hover:bg-danger/5"
           >
             <Trash2 className="size-3.5" aria-hidden />
@@ -98,7 +98,7 @@ export function RequestDetail({
       {/* Quick facts */}
       <div className="grid grid-cols-3 divide-x divide-border border-b border-border bg-surface">
         <Fact label="Status" value={String(request.status)} accent="live" />
-        <Fact label="Size" value={formatBytes(request.contentLength)} />
+        <Fact label="Size" value={formatBytes(request.contentLength ?? request.bodySize)} />
         <Fact label="Protocol" value={request.protocol} />
       </div>
 
@@ -166,13 +166,13 @@ export function RequestDetail({
         {tab === "meta" && (
           <KeyValueTable
             entries={[
-              ["Request ID", request.id],
+              ["Request ID", request.publicId],
               ["Method", request.method],
               ["Path", request.path],
-              ["Source IP", request.sourceIp],
-              ["User agent", request.userAgent],
-              ["Content type", request.contentType],
-              ["Content length", formatBytes(request.contentLength)],
+              ["Source IP", request.sourceIp ?? "—"],
+              ["User agent", request.userAgent ?? "—"],
+              ["Content type", request.contentType ?? "—"],
+              ["Content length", formatBytes(request.contentLength ?? request.bodySize)],
               ["Protocol", request.protocol],
               ["Received at", fullTimestamp(request.receivedAt)],
             ]}

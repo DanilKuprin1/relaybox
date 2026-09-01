@@ -3,8 +3,8 @@
 import { Plus, Radio, Trash2 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { UserButton, useUser } from "@clerk/nextjs";
-import type { Endpoint } from "@/lib/mock-data";
-import { MAX_ENDPOINTS } from "@/lib/mock-data";
+import type { Endpoint } from "@/lib/types";
+import { MAX_ENDPOINTS } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function EndpointsSidebar({
@@ -48,10 +48,10 @@ export function EndpointsSidebar({
 
       <nav className="scroll-thin flex flex-1 flex-col gap-1 overflow-y-auto px-2">
         {endpoints.map((ep) => {
-          const active = ep.id === selectedId;
+          const active = ep.publicId === selectedId;
           return (
             <div
-              key={ep.id}
+              key={ep.publicId}
               className={cn(
                 "group relative rounded-lg border transition-colors",
                 active
@@ -61,7 +61,7 @@ export function EndpointsSidebar({
             >
               <button
                 type="button"
-                onClick={() => onSelect(ep.id)}
+                onClick={() => onSelect(ep.publicId)}
                 aria-current={active ? "true" : undefined}
                 className="flex w-full flex-col gap-1 px-3 py-2.5 text-left"
               >
@@ -81,7 +81,7 @@ export function EndpointsSidebar({
                 </span>
                 <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
                   <Radio className="size-3" aria-hidden />
-                  {ep.requests.length} captured
+                  {ep.enabled ? "Active" : "Paused"}
                   {!ep.enabled && (
                     <span className="ml-auto rounded bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border">
                       Disabled
@@ -91,7 +91,7 @@ export function EndpointsSidebar({
               </button>
               <button
                 type="button"
-                onClick={() => onDelete(ep.id)}
+                onClick={() => onDelete(ep.publicId)}
                 aria-label={`Delete ${ep.name}`}
                 className="absolute right-1.5 top-1.5 rounded-md p-2 text-muted-foreground transition-all hover:bg-danger-muted hover:text-danger focus-visible:opacity-100 lg:p-1 lg:opacity-0 lg:group-hover:opacity-100"
               >

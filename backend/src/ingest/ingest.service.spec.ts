@@ -53,7 +53,7 @@ function request(overrides: Partial<RawRequest> = {}): RawRequest {
       'content-length': '18',
       'user-agent': 'Stripe/1.0',
     },
-    rawBody: Buffer.from('{"type":"ping"}'),
+    body: Buffer.from('{"type":"ping"}'),
     ...overrides,
   } as RawRequest;
 }
@@ -122,7 +122,7 @@ describe('IngestService', () => {
       'key_abc',
       request({
         headers: { 'content-type': 'application/xml' },
-        rawBody: Buffer.from('<a/>'),
+        body: Buffer.from('<a/>'),
       }),
     );
 
@@ -134,7 +134,7 @@ describe('IngestService', () => {
 
     await service.capture(
       'key_abc',
-      request({ rawBody: Buffer.from('{not json') }),
+      request({ body: Buffer.from('{not json') }),
     );
 
     expect(row().body).toBeNull();
@@ -143,7 +143,7 @@ describe('IngestService', () => {
   it('handles a request with no body at all', async () => {
     const { service, row } = setup();
 
-    await service.capture('key_abc', request({ rawBody: undefined }));
+    await service.capture('key_abc', request({ body: undefined }));
 
     expect(row()).toMatchObject({ bodySize: 0, body: null });
   });
@@ -152,7 +152,7 @@ describe('IngestService', () => {
     const { service, row } = setup();
     const oversized = Buffer.alloc(MAX_BODY_BYTES + 500, 0x61);
 
-    await service.capture('key_abc', request({ rawBody: oversized }));
+    await service.capture('key_abc', request({ body: oversized }));
 
     expect(row()).toMatchObject({
       bodyTruncated: true,

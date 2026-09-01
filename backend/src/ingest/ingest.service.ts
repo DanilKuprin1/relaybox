@@ -24,13 +24,11 @@ export class IngestService {
       throw new NotFoundException('Unknown ingest key');
     }
 
-    // A disabled endpoint still answers 200 so the sender doesn't retry, but
-    // nothing is recorded.
     if (!webhook.enabled) {
       return { received: false };
     }
 
-    const raw = req.rawBody ?? Buffer.alloc(0);
+    const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     const bodyTruncated = raw.length > MAX_BODY_BYTES;
     const stored = bodyTruncated ? raw.subarray(0, MAX_BODY_BYTES) : raw;
 
@@ -46,7 +44,6 @@ export class IngestService {
       method: req.method.slice(0, 10) as Varchar<10>,
       path: req.path,
       rawQuery: this.rawQueryOf(req),
-      // Express types the query/header bags loosely; round-trip to plain JSON.
       query: JSON.parse(JSON.stringify(req.query)) as JsonValue,
       protocol: `HTTP/${req.httpVersion}`.slice(0, 10) as Varchar<10>,
       headers: JSON.parse(JSON.stringify(req.headers)) as JsonValue,

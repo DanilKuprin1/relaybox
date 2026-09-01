@@ -49,6 +49,12 @@ const METHOD_TOKENS: Record<HttpMethod, { text: string; bg: string; border: stri
   DELETE: { text: "text-method-delete", bg: "bg-method-delete/10", border: "border-method-delete/25" },
 };
 
-export function methodTokens(method: HttpMethod) {
-  return METHOD_TOKENS[method];
+const FALLBACK_TOKENS = {
+  text: "text-muted-foreground",
+  bg: "bg-surface-muted",
+  border: "border-border",
+};
+
+export function methodTokens(method: string) {
+  return METHOD_TOKENS[method as HttpMethod] ?? FALLBACK_TOKENS;
 }

@@ -5,11 +5,6 @@ import { WebhooksService } from './webhooks.service.js';
 
 const user: DbUser = { id: 7, clerkId: 'user_test_123' };
 
-/**
- * The controller is a thin delegation layer, so these assert that each route
- * forwards the current user and its params to the service unchanged, and
- * returns whatever the service produced.
- */
 function setup() {
   const service = {
     create: vi.fn(),

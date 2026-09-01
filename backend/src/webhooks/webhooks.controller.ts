@@ -4,6 +4,7 @@ import type { DbUser } from '../auth/auth.types.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { CreateWebhookDto } from './dto/create-webhook.dto.js';
 import {
+  RequestsListResponseDto,
   WebhooksCreateResponseDto,
   WebhooksListResponseDto,
 } from './dto/webhook-response.dto.js';
@@ -31,6 +32,12 @@ export class WebhooksController {
   @Get(':id')
   findOne(@CurrentUser() user: DbUser, @Param('id') id: string) {
     return this.webhooksService.findOne(user, id);
+  }
+
+  @Get(':id/requests')
+  @ZodSerializerDto(RequestsListResponseDto)
+  findRequests(@CurrentUser() user: DbUser, @Param('id') id: string) {
+    return this.webhooksService.findRequests(user, id);
   }
 
   @Delete(':id')

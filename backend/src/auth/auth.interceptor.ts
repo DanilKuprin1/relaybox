@@ -5,11 +5,11 @@ import {
   NestInterceptor,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
 import { Reflector } from '@nestjs/core';
+import { Observable } from 'rxjs';
+import { DbService } from '../prisma/db.service.js';
 import { AuthenticatedRequest } from './auth.types.js';
 import { IS_PUBLIC_KEY } from './public.decorator.js';
-import { DbService } from '../prisma/db.service.js';
 
 @Injectable()
 export class AuthInterceptor implements NestInterceptor {
@@ -38,6 +38,7 @@ export class AuthInterceptor implements NestInterceptor {
     const dbUser = await this.dbService.dbConnection.orm.public.User.upsert({
       create: { clerkId: userId },
       update: {},
+      conflictOn: { clerkId: userId },
     });
     request.dbUser = dbUser;
     return next.handle();

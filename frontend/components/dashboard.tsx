@@ -2,11 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { Plus, Webhook } from "lucide-react";
-import { endpoints as seedEndpoints, type Endpoint } from "@/lib/mock-data";
-import { EndpointsSidebar } from "@/components/endpoints-sidebar";
-import { RequestList } from "@/components/request-list";
-import { RequestDetail } from "@/components/request-detail";
 import { CreateEndpointDialog } from "@/components/create-endpoint-dialog";
+import { EndpointsSidebar } from "@/components/endpoints-sidebar";
+import { RequestDetail } from "@/components/request-detail";
+import { RequestList } from "@/components/request-list";
+import {
+  useEndpoints,
+  useRequestEvents,
+  useRequests,
+} from "@/hooks/use-relaybox";
 import { cn } from "@/lib/utils";
 
 /**
@@ -17,24 +21,14 @@ function paneClass(active: boolean) {
   return active ? "flex" : "hidden lg:flex";
 }
 
-function randomKey(len = 24) {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let out = "";
-  for (let i = 0; i < len; i++) {
-    out += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return out;
-}
-
 export function Dashboard() {
-  const [endpoints, setEndpoints] = useState<Endpoint[]>(seedEndpoints);
-  const [selectedEndpointId, setSelectedEndpointId] = useState(
-    seedEndpoints[0].id,
+  const { endpoints, loading, error, create, remove } = useEndpoints();
+  const [selectedEndpointId, setSelectedEndpointId] = useState<string | null>(
+    null,
   );
   const [selectedByEndpoint, setSelectedByEndpoint] = useState<
     Record<string, string | null>
-  >({ [seedEndpoints[0].id]: seedEndpoints[0].requests[0]?.id ?? null });
+  >({});
   const [dialogOpen, setDialogOpen] = useState(false);
   // Mobile uses a drill-down: endpoints -> requests -> detail.
   // On lg+ all three panes are visible at once and this is ignored.
@@ -43,70 +37,46 @@ export function Dashboard() {
   >("endpoints");
 
   const selectedEndpoint = useMemo(
-    () => endpoints.find((e) => e.id === selectedEndpointId) ?? endpoints[0],
+    () =>
+      endpoints.find((e) => e.publicId === selectedEndpointId) ?? endpoints[0],
     [endpoints, selectedEndpointId],
   );
 
-  const selectedRequestId = selectedEndpoint
-    ? selectedByEndpoint[selectedEndpoint.id] ?? null
+  const activeId = selectedEndpoint?.publicId ?? null;
+  const { requests } = useRequests(activeId);
+
+  useRequestEvents();
+
+  const selectedRequestId = activeId
+    ? (selectedByEndpoint[activeId] ?? null)
     : null;
   const selectedRequest =
-    selectedEndpoint?.requests.find((r) => r.id === selectedRequestId) ?? null;
+    requests.find((r) => r.publicId === selectedRequestId) ?? null;
 
   function handleSelectEndpoint(id: string) {
     setSelectedEndpointId(id);
     setMobileView("requests");
-    setSelectedByEndpoint((prev) => {
-      if (prev[id] !== undefined) return prev;
-      const ep = endpoints.find((e) => e.id === id);
-      return { ...prev, [id]: ep?.requests[0]?.id ?? null };
-    });
   }
 
   function handleSelectRequest(id: string) {
-    setSelectedByEndpoint((prev) => ({ ...prev, [selectedEndpoint.id]: id }));
+    if (!activeId) return;
+    setSelectedByEndpoint((prev) => ({ ...prev, [activeId]: id }));
     setMobileView("detail");
   }
 
-  function handleToggleEnabled() {
-    setEndpoints((prev) =>
-      prev.map((e) =>
-        e.id === selectedEndpoint.id ? { ...e, enabled: !e.enabled } : e,
-      ),
-    );
-  }
-
-  function handleDeleteRequest(id: string) {
-    setEndpoints((prev) =>
-      prev.map((e) =>
-        e.id === selectedEndpoint.id
-          ? { ...e, requests: e.requests.filter((r) => r.id !== id) }
-          : e,
-      ),
-    );
-    setSelectedByEndpoint((prev) => {
-      const remaining = selectedEndpoint.requests.filter((r) => r.id !== id);
-      return { ...prev, [selectedEndpoint.id]: remaining[0]?.id ?? null };
-    });
-    // The detail pane we were viewing is gone — step back to the list on mobile.
+  function handleDismissRequest(id: string) {
+    if (activeId && selectedRequestId === id) {
+      setSelectedByEndpoint((prev) => ({ ...prev, [activeId]: null }));
+    }
     setMobileView("requests");
   }
 
-  function handleDeleteEndpoint(id: string) {
-    setEndpoints((prev) => {
-      const next = prev.filter((e) => e.id !== id);
-      // If we deleted the active endpoint, move selection to the first remaining one.
-      if (id === selectedEndpointId && next.length > 0) {
-        setSelectedEndpointId(next[0].id);
-        setSelectedByEndpoint((sel) =>
-          sel[next[0].id] !== undefined
-            ? sel
-            : { ...sel, [next[0].id]: next[0].requests[0]?.id ?? null },
-        );
-      }
-      if (next.length === 0) setMobileView("endpoints");
-      return next;
-    });
+  async function handleDeleteEndpoint(id: string) {
+    await remove(id);
+    if (id === activeId) {
+      setSelectedEndpointId(null);
+      setMobileView("endpoints");
+    }
     setSelectedByEndpoint((prev) => {
       const rest = { ...prev };
       delete rest[id];
@@ -114,45 +84,44 @@ export function Dashboard() {
     });
   }
 
-  function handleCreateEndpoint(name: string) {
-    const newEndpoint: Endpoint = {
-      id: `ep_${randomKey(6)}`,
-      name,
-      publicKey: randomKey(24),
-      enabled: true,
-      createdAt: new Date().toISOString(),
-      requests: [],
-    };
-    setEndpoints((prev) => [...prev, newEndpoint]);
-    setSelectedEndpointId(newEndpoint.id);
-    setSelectedByEndpoint((prev) => ({ ...prev, [newEndpoint.id]: null }));
+  async function handleCreateEndpoint(name: string) {
+    const created = await create(name);
+    setSelectedEndpointId(created.publicId);
     setMobileView("requests");
     setDialogOpen(false);
+  }
+
+  if (loading) {
+    return <Centered>Loading endpoints…</Centered>;
+  }
+
+  if (error) {
+    return <Centered>Couldn’t reach the API — {error}</Centered>;
   }
 
   return (
     <div className="flex h-dvh w-full overflow-hidden">
       <EndpointsSidebar
         endpoints={endpoints}
-        selectedId={selectedEndpoint?.id ?? ""}
+        selectedId={activeId ?? ""}
         onSelect={handleSelectEndpoint}
         onCreate={() => setDialogOpen(true)}
-        onDelete={handleDeleteEndpoint}
+        onDelete={(id) => void handleDeleteEndpoint(id)}
         className={paneClass(mobileView === "endpoints")}
       />
       {selectedEndpoint ? (
         <>
           <RequestList
             endpoint={selectedEndpoint}
+            requests={requests}
             selectedRequestId={selectedRequestId}
             onSelectRequest={handleSelectRequest}
-            onToggleEnabled={handleToggleEnabled}
             onBack={() => setMobileView("endpoints")}
             className={paneClass(mobileView === "requests")}
           />
           <RequestDetail
             request={selectedRequest}
-            onDelete={handleDeleteRequest}
+            onDelete={handleDismissRequest}
             onBack={() => setMobileView("requests")}
             className={paneClass(mobileView === "detail")}
           />
@@ -167,8 +136,16 @@ export function Dashboard() {
       <CreateEndpointDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        onCreate={handleCreateEndpoint}
+        onCreate={(name) => void handleCreateEndpoint(name)}
       />
+    </div>
+  );
+}
+
+function Centered({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-dvh w-full items-center justify-center bg-background text-sm text-muted-foreground">
+      {children}
     </div>
   );
 }

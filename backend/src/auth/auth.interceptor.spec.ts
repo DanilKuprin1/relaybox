@@ -63,6 +63,7 @@ describe('AuthInterceptor', () => {
     expect(upsert).toHaveBeenCalledWith({
       create: { clerkId: 'user_test_123' },
       update: {},
+      conflictOn: { clerkId: 'user_test_123' },
     });
     expect(request.dbUser).toEqual(fakeDbUser);
     expect(next.handle).toHaveBeenCalledOnce();

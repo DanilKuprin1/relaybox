@@ -1,12 +1,21 @@
 import { ClerkClient, clerkMiddleware } from '@clerk/express';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import express from 'express';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module.js';
 import { CLERK_CLIENT } from './auth/clerk.js';
+import { MAX_CAPTURE_BYTES } from './ingest/ingest.types.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+
+  app.use(
+    '/hooks',
+    express.raw({ type: () => true, limit: MAX_CAPTURE_BYTES }),
+  );
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
   const openApiDoc = SwaggerModule.createDocument(
     app,
@@ -14,8 +23,12 @@ async function bootstrap() {
   );
 
   SwaggerModule.setup('api', app, cleanupOpenApiDoc(openApiDoc));
+  app.enableCors({
+    origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:3000',
+    credentials: true,
+  });
   app.use(clerkMiddleware({ clerkClient: app.get<ClerkClient>(CLERK_CLIENT) }));
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3001);
 }
 
 bootstrap();
