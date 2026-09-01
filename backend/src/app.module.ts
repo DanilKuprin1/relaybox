@@ -20,9 +20,11 @@ import {
 import { ZodError } from 'zod';
 import { AuthModule } from './auth/auth.module.js';
 import { envSchema } from './config/env.schema.js';
+import { EventsModule } from './events/events.module.js';
 import { DbModule } from './prisma/db.module.js';
 import { DbService } from './prisma/db.service.js';
 import { WebhooksModule } from './webhooks/webhooks.module.js';
+import { IngestModule } from './ingest/ingest.module.js';
 
 @Catch(HttpException)
 class HttpExceptionFilter extends BaseExceptionFilter {
@@ -49,7 +51,9 @@ class HttpExceptionFilter extends BaseExceptionFilter {
     }),
     AuthModule,
     DbModule,
+    EventsModule,
     WebhooksModule,
+    IngestModule,
   ],
   controllers: [],
   providers: [

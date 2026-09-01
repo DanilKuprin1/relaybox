@@ -1,6 +1,7 @@
 import { getAuth, SessionAuthObject } from '@clerk/express';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Reflector } from '@nestjs/core';
 import { AuthGuard } from './auth.guard.js';
 import { AuthenticatedRequest } from './auth.types.js';
 
@@ -15,13 +16,26 @@ const ctx = (request: AuthenticatedRequest) => {
     switchToHttp: vi
       .fn()
       .mockReturnValue({ getRequest: vi.fn().mockReturnValue(request) }),
+    getHandler: vi.fn(),
+    getClass: vi.fn(),
   };
 };
 
 describe('AuthGuard', () => {
-  const authGuard = new AuthGuard();
+  const reflector = { getAllAndOverride: vi.fn() } as unknown as Reflector;
+  const authGuard = new AuthGuard(reflector);
 
   afterEach(() => vi.clearAllMocks());
+
+  it('lets @Public() routes through without a Clerk session', () => {
+    vi.mocked(reflector.getAllAndOverride).mockReturnValueOnce(true);
+    const request = {} as AuthenticatedRequest;
+
+    expect(
+      authGuard.canActivate(ctx(request) as unknown as ExecutionContext),
+    ).toBe(true);
+    expect(getAuth).not.toHaveBeenCalled();
+  });
 
   it('should be defined', () => {
     expect(authGuard).toBeDefined();
