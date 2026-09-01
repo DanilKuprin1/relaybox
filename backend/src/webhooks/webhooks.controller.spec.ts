@@ -10,6 +10,7 @@ function setup() {
     create: vi.fn(),
     findAll: vi.fn(),
     findOne: vi.fn(),
+    findRequests: vi.fn(),
     remove: vi.fn(),
   };
   return {
@@ -69,6 +70,19 @@ describe('WebhooksController', () => {
 
       await expect(controller.remove(user, 'web_abc')).resolves.toBeUndefined();
       expect(service.remove).toHaveBeenCalledWith(user, 'web_abc');
+    });
+  });
+
+  describe('findRequests', () => {
+    it('scopes the request list to the current user', async () => {
+      const { controller, service } = setup();
+      const list = { data: [{ publicId: 'req_abc' }] };
+      service.findRequests.mockResolvedValue(list);
+
+      await expect(controller.findRequests(user, 'web_abc')).resolves.toBe(
+        list,
+      );
+      expect(service.findRequests).toHaveBeenCalledWith(user, 'web_abc');
     });
   });
 });

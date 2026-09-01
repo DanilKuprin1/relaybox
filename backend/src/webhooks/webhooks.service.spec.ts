@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import type { DbUser } from '../auth/auth.types.js';
 import { DbService } from '../prisma/db.service.js';
@@ -19,10 +20,24 @@ function setup() {
     cb({ createdAt: { desc: () => undefined } } as never);
     return { all, first };
   });
-  const where = vi.fn(() => ({ orderBy, delete: del }));
+  const where = vi.fn(() => ({ orderBy, delete: del, first }));
+
+  const requestAll = vi.fn();
+  const requestOrderBy = vi.fn((cb: (r: never) => unknown) => {
+    cb({ receivedAt: { desc: () => undefined } } as never);
+    return { all: requestAll };
+  });
+  const requestWhere = vi.fn(() => ({ orderBy: requestOrderBy }));
 
   const db = {
-    dbConnection: { orm: { public: { Webhook: { create, where } } } },
+    dbConnection: {
+      orm: {
+        public: {
+          Webhook: { create, where },
+          Request: { where: requestWhere },
+        },
+      },
+    },
   } as unknown as DbService;
 
   return {
@@ -33,6 +48,9 @@ function setup() {
     all,
     first,
     del,
+    requestWhere,
+    requestOrderBy,
+    requestAll,
   };
 }
 
@@ -115,6 +133,66 @@ describe('WebhooksService', () => {
       await expect(service.remove(user, 'web_abc')).resolves.toBeUndefined();
       expect(where).toHaveBeenCalledWith({ userId: 7, publicId: 'web_abc' });
       expect(del).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('findRequests', () => {
+    it('throws when the webhook is not owned by the user', async () => {
+      const { service, first, requestWhere } = setup();
+      first.mockResolvedValue(undefined);
+
+      await expect(service.findRequests(user, 'web_other')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(requestWhere).not.toHaveBeenCalled();
+    });
+
+    it('scopes the webhook lookup to the user and publicId', async () => {
+      const { service, where, first, requestAll } = setup();
+      first.mockResolvedValue({ id: 42n });
+      requestAll.mockResolvedValue([]);
+
+      await service.findRequests(user, 'web_abc');
+
+      expect(where).toHaveBeenCalledWith({ userId: 7, publicId: 'web_abc' });
+    });
+
+    it('returns the webhook requests newest first, wrapped in data', async () => {
+      const { service, first, requestWhere, requestOrderBy, requestAll } =
+        setup();
+      first.mockResolvedValue({ id: 42n });
+      requestAll.mockResolvedValue([
+        { publicId: 'req_1', rawBody: null },
+        { publicId: 'req_2', rawBody: null },
+      ]);
+
+      const result = await service.findRequests(user, 'web_abc');
+
+      expect(requestWhere).toHaveBeenCalledWith({ webhookId: 42n });
+      expect(requestOrderBy).toHaveBeenCalledOnce();
+      expect(result.data).toHaveLength(2);
+    });
+
+    it('decodes rawBody bytes to a string', async () => {
+      const { service, first, requestAll } = setup();
+      first.mockResolvedValue({ id: 42n });
+      requestAll.mockResolvedValue([
+        { publicId: 'req_1', rawBody: new Uint8Array([104, 105]) },
+      ]);
+
+      const result = await service.findRequests(user, 'web_abc');
+
+      expect(result.data[0].rawBody).toBe('hi');
+    });
+
+    it('returns an empty string when a request has no body', async () => {
+      const { service, first, requestAll } = setup();
+      first.mockResolvedValue({ id: 42n });
+      requestAll.mockResolvedValue([{ publicId: 'req_1', rawBody: null }]);
+
+      const result = await service.findRequests(user, 'web_abc');
+
+      expect(result.data[0].rawBody).toBe('');
     });
   });
 });
