@@ -2,7 +2,7 @@ import { ClerkClient, clerkMiddleware } from '@clerk/express';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import express from 'express';
-import { Logger, PinoLogger } from 'nestjs-pino';
+import { Logger } from 'nestjs-pino';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module.js';
 import { CLERK_CLIENT } from './auth/clerk.js';
@@ -37,7 +37,7 @@ async function bootstrap() {
   app.use(clerkMiddleware({ clerkClient: app.get<ClerkClient>(CLERK_CLIENT) }));
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  app.get(PinoLogger).info({ port }, 'Relaybox backend is listening');
+  app.get(Logger).log(`Relaybox backend listening on ${port}`);
 }
 
 bootstrap().catch((error: unknown) => {
