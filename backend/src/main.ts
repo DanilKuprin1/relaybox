@@ -8,6 +8,7 @@ import { AppModule } from './app.module.js';
 import { CLERK_CLIENT } from './auth/clerk.js';
 import { bootstrapLogger } from './config/logger.js';
 import { MAX_CAPTURE_BYTES } from './ingest/ingest.types.js';
+import './instrument.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

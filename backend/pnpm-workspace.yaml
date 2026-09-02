@@ -1,5 +1,6 @@
 allowBuilds:
   '@scarf/scarf': false
+  '@sentry/node-cpu-profiler': true
   '@swc/core': false
   esbuild: true
   msgpackr-extract: true

@@ -1,11 +1,13 @@
 import {
-  ArgumentsHost,
+  type ArgumentsHost,
   Catch,
   ExceptionFilter,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+
 import { HttpAdapterHost } from '@nestjs/core';
+import { SentryExceptionCaptured } from '@sentry/nestjs';
 import type { Request } from 'express';
 import { PinoLogger } from 'nestjs-pino';
 import { ZodSerializationException } from 'nestjs-zod';
@@ -23,6 +25,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     this.logger.setContext(AllExceptionsFilter.name);
   }
 
+  @SentryExceptionCaptured()
   catch(exception: unknown, host: ArgumentsHost): void {
     const context = host.switchToHttp();
     const request = context.getRequest<RequestWithId>();
