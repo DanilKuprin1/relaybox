@@ -11,6 +11,7 @@ export default defineConfig({
       include: ['**/*.ts'],
       exclude: [
         'main.ts',
+        'instrument.ts',
         '**/*.module.ts',
         'config/**',
         'auth/clerk.ts',
