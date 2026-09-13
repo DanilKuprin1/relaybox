@@ -9,6 +9,8 @@
   "packageManager": "pnpm@11.22.0",
   "scripts": {
     "build": "nest build",
+    "contract:emit": "prisma contract emit",
+    "db:migrate": "prisma db migrate",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
