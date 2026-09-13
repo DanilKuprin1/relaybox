@@ -13,6 +13,7 @@ export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   CLERK_SECRET_KEY: z.string().min(1),
   CLERK_PUBLISHABLE_KEY: z.string().min(1),
+  SENTRY_DSN: z.literal('').or(z.string().url()).optional(),
 });
 export type Env = z.infer<typeof envSchema>;
 
